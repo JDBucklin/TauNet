@@ -2,15 +2,15 @@ import os
 import sys
 IV_LENGTH = 10 #lenth of IV
 REPS = 10
-KEY = 'asdfg'
 
 def main():
+   key = raw_input('Enter your key: ')
    filename = sys.argv[1]
    a_file = open(filename, 'r')
    string = 'I eat onions while I sleep.'
    #encrypted = encrypt(string, 200, 'dookie')
-   encrypted = a_file.readline().rstrip()
-   decrypted = decrypt(encrypted, REPS, KEY)
+   encrypted = a_file.read().rstrip()
+   decrypted = decrypt(encrypted, REPS, key)
    print "This is the starting message: " + string
    print "This is the encrypted message: " + encrypted
    print "This is the decrpted message: " + decrypted
@@ -33,7 +33,7 @@ def rc4(length, rounds, key):
 
    #produce the keystream
    keystream = []
-   for i in range(0, 256):
+   for i in range(0, length):
       keystream.append(0)
 
    j = 0
@@ -54,9 +54,7 @@ def decrypt(message, rounds, key):
    message_len = len(message)
    iv = message[0:10]
    message = message [10:]
-   print "iv: " + iv
    key = key + iv
-   print 'key + iv: ' + key
    keystream = rc4(message_len - 10, rounds, key)
    plaintext = ''
    for i in range(0, message_len - 10):
