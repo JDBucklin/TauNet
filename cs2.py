@@ -3,17 +3,18 @@ import sys
 IV_LENGTH = 10 #lenth of IV
 REPS = 10
 
-def main():
-   key = raw_input('Enter your key: ')
-   filename = sys.argv[1]
-   a_file = open(filename, 'r')
-   string = 'I eat onions while I sleep.'
-   #encrypted = encrypt(string, 200, 'dookie')
-   encrypted = a_file.read().rstrip()
-   decrypted = decrypt(encrypted, REPS, key)
-   print "This is the starting message: " + string
-   print "This is the encrypted message: " + encrypted
-   print "This is the decrpted message: " + decrypted
+
+#def main():
+#   key = raw_input('Enter your key: ')
+#   filename = sys.argv[1]
+#   a_file = open(filename, 'r')
+#   string = 'I eat onions while I sleep.'
+#   #encrypted = encrypt(string, 200, 'dookie')
+#   encrypted = a_file.read().rstrip()
+#   decrypted = decrypt(encrypted, REPS, key)
+#   print "This is the starting message: " + string
+#   print "This is the encrypted message: " + encrypted
+#   print "This is the decrpted message: " + decrypted
 
 #RC4 Cipher
 #length: the length of the message to be encypted
@@ -76,6 +77,4 @@ def encrypt(message, rounds, key):
       ciphertext += chr(ord(message[i]) ^ keystream[i])
    return ciphertext
 
-
-main()
 

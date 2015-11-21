@@ -1,6 +1,11 @@
 import socket
 import threading
-from CipherSaber-2 import encrypt, decrypt, RC4
+import os
+from cs2 import encrypt, decrypt, rc4
+
+#globals -- should not be changed -- consider to be constants
+PORT = 6283
+VERSION = '0.1'
 
 #a TauNet server that allows single messages to be recieved
 class TauNetServer(threading.Thread):
@@ -9,13 +14,12 @@ class TauNetServer(threading.Thread):
         self.running = True
 
     def run(self):
-        HOST = '' #generic '' allows connections from any host
-        PORT = 6283
+        host = '' #generic '' allows connections from any host
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            server_socket.bind((HOST, PORT))
+            server_socket.bind((host, PORT))
         except socket.error, msg:
             print 'Bind failed. Error Code: ' + str(msg[0]) + ' Message: ' + str(msg[1])
 
@@ -23,55 +27,68 @@ class TauNetServer(threading.Thread):
         while self.running:
             conn, addr = server_socket.accept()
             data = conn.recv(1024)
-            #print 'Message recieved from ' + addr[0] + ': ' + data
             conn.close()
 
         server_socket.close()
-        print "Server Stopped Successfully"
-
-    #stops the server and closes the thread.
-    #to accomplish this is must make a connection with itself to finish the accept loop
-    def stop_server(self):
-        self.running = False
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(('192.168.1.39', 6283))
 
 #A class that acts as a interface to send/recieve messages to/from
 #other users within a TauNet network.
 #It includes an instance of a TauNetServer that is started immmeadiately within a separate thread
 class TauNet():
-    
-
-#a client of the TauNet network
-#it stores a list of possible users to send messages to read in from a local file
-class TauNetClient():
     def __init__(self):
-        self.name = 'jbucklin'
-
-    def send_message(self):
-        message = raw_input('Enter a message: ')
-        c_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        #replace this with file search or when client is made it has list available
-        HOST = '192.168.1.39'
-        PORT = 6283
-
-        #connect to server and send the message
-        #server is expected to close the connection
-        c_socket.connect((HOST, PORT))
-        c_socket.sendall(message)
-        print 'Message sent successfully!\n'
+        self.server = TauNetServer()
+        self.server.setDaemon(True)
+        self.server.start()
+        self.user_table = {}
         
+        #read contents in from local file user_table.txt
+        a_file = open('user_table.txt', 'r')
+        for line in a_file:
+            line = line.rstrip().split('|')
+            self.user_table.update({line[0]:line[1]})
+
+        a_file.close()
+
+    #displays contents of user table stored in self.user_table
+    def display_users(self):
+        print 'User Table:\n' + 'User Name'.ljust(15) + 'IP'.ljust(10)
+        for user in self.user_table:
+            print user.ljust(15) + self.user_table[user].ljust(10)
+
+    #makes a connection to a host of the user's choosing
+    #and sends an encrypted message to the selected host
+    def send_message(self):
+        #get username of recipient and message from the user
+        valid = False
+        while(not valid):
+            self.display_users()
+            user = raw_input('Enter the User Name of the person you would like to send a message: ')
+            if(user not in self.user_table.keys()):
+                raw_input('Invalid User Name. Try again.')
+                clear_screen()
+            continue
+            valid = True
+
+        message = raw_input('Enter a message to send ' + user + ': ')
+        
+        ciphertext = encrypt('version: ' + VERSION + '\nfrom: ' self.name + '\nto: ' + user + '\n\n' + message)
+
+        #establish a connection and send message to user
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client_socket.connect((self.user_table[user], PORT))
+            client_socket.sendall(message)
+            raw_input('Message sent successfully! Press Enter to Continue.')
+        except socket.error, exc:
+            raw_input('User unavailable. Message failed to send.')
+        
+#clears screen by outputting 100 lines
+def clear_screen():
+    for i in range(0, 100):
+        print ''
+
 def main():
-    a_server = TauNetServer()
-    a_server.start()
-
-    a_client = TauNetClient()
-    again = True
-    while(again != 'n'):
-        a_client.send_message()
-        again = raw_input('again?')
-
-    a_server.stop_server()
-    a_server.join()
-    
+    a_net = TauNet()
+    a_net.send_message()
+  
 main()
