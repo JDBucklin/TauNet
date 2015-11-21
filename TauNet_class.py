@@ -1,6 +1,6 @@
 import socket
 import threading
-from CipherSaber-2 import *
+from CipherSaber-2 import encrypt, decrypt, RC4
 
 #a TauNet server that allows single messages to be recieved
 class TauNetServer(threading.Thread):
@@ -34,6 +34,12 @@ class TauNetServer(threading.Thread):
     def stop_server(self):
         self.running = False
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(('192.168.1.39', 6283))
+
+#A class that acts as a interface to send/recieve messages to/from
+#other users within a TauNet network.
+#It includes an instance of a TauNetServer that is started immmeadiately within a separate thread
+class TauNet():
+    
 
 #a client of the TauNet network
 #it stores a list of possible users to send messages to read in from a local file
