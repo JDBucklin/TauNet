@@ -1,20 +1,5 @@
 import os
 import sys
-IV_LENGTH = 10 #lenth of IV
-REPS = 10
-
-
-#def main():
-#   key = raw_input('Enter your key: ')
-#   filename = sys.argv[1]
-#   a_file = open(filename, 'r')
-#   string = 'I eat onions while I sleep.'
-#   #encrypted = encrypt(string, 200, 'dookie')
-#   encrypted = a_file.read().rstrip()
-#   decrypted = decrypt(encrypted, REPS, key)
-#   print "This is the starting message: " + string
-#   print "This is the encrypted message: " + encrypted
-#   print "This is the decrpted message: " + decrypted
 
 #RC4 Cipher
 #length: the length of the message to be encypted
@@ -52,13 +37,14 @@ def rc4(length, rounds, key):
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message
 def decrypt(message, rounds, key):
+   iv_length = 16
    message_len = len(message)
-   iv = message[0:10]
-   message = message [10:]
+   iv = message[0:iv_length]
+   message = message [iv_length:]
    key = key + iv
-   keystream = rc4(message_len - 10, rounds, key)
+   keystream = rc4(message_len - iv_length, rounds, key)
    plaintext = ''
-   for i in range(0, message_len - 10):
+   for i in range(0, message_len - iv_length):
       plaintext += chr(ord(message[i]) ^ keystream[i])
    return plaintext
 
@@ -67,8 +53,9 @@ def decrypt(message, rounds, key):
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message.
 def encrypt(message, rounds, key):
+   iv_length = 16
    message_len = len(message)
-   iv = os.urandom(IV_LENGTH)
+   iv = os.urandom(iv_length)
    key = key + iv
    keystream = rc4(message_len, rounds, key)
    ciphertext = ''
