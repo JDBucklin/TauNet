@@ -6,15 +6,14 @@ from cs2 import encrypt, decrypt, rc4
 
 #A class that acts as a interface to send/recieve messages to/from other users within a TauNet network.
 #It includes an instance of a TauNetServer that is started immmeadiately within a separate thread
-class TauNet():
+class TauNetClient():
     def __init__(self):
-        self.version = '0.1'
-        self.port = 6283
-        self.rounds = 20
-        
-        #the first line of the user_table.txt file corresponds to the owner of the TauNet
-        a_file = open('user_table.txt', 'r')
-        self.name = a_file.readline().split('|')[0]
+        #open info file and get self.name, version, port and # rounds for keystream
+        a_file = open('info.txt', 'r')
+        self.name = a_file.readline()
+        self.port = int(a_file.readline())
+        self.rounds = int(a_file.readline())
+        self.version = a_file.readline()
         a_file.close()
         
         #read contents in from local file user_table.txt
@@ -28,18 +27,21 @@ class TauNet():
             self.user_table.update({line[0]:line[1]})
         a_file.close()
 
-        #get this sessions encryption key from the user
+        #welcome the user and get encryption key from the user
+        clear_screen()
+        self.welcome()
+
+    def welcome(self):
+        print 'Welcome to your TauNet Client'
+        print 'With this program you will be able to send messages to other'
+        print 'users within your TauNet network. If you would like to recieve'
+        print 'messages please open the TauNet server which should be included'
+        print 'separately.\n'
+
+        print 'Follow the prompts at the menu to perform actions. Enjoy!\n'
+
         self.key = raw_input('Enter the encryption key for this session: ')
-
-        #create and start server if the server fails to start abort the program
-        #the sleep portion prevents the menu from being shown in the event of bind failure
-        self.server = TauNetServer(self.port, self.key, self.rounds)
-        self.server.setDaemon(True)
-        self.server.start()
-        sleep(0.5)
-        if(not self.server.isAlive()):
-            sys.exit()
-
+        
     #main loop of the program
     #gives the user options to view/send messages, view user table, and exit
     def menu(self):
@@ -47,21 +49,17 @@ class TauNet():
         while(choice != '0'):
             print 'Choose from the following: '
             print '1 - Send a message to a TauNet user'
-            print '2 - Check for messages recieved from other TauNet users'
-            print '3 - View users in your TauNet network'
-            print '4 - Set new encryption key for session'
+            print '2 - View users in your TauNet network'
+            print '3 - Set new encryption key for session'
             print '0 - Exit the program'
             choice = raw_input('Enter the # corresponding to your choice: ')
             if(choice == '1'):
                 print 'You chose to send a message to another TauNet user.'
                 self.send_message()
             elif(choice == '2'):
-                print 'You chose to check your messages.'
-                self.server.display_message()
-            elif(choice == '3'):
                 print 'You chose to view users in your network.'
                 self.display_users()
-            elif(choice == '4'):
+            elif(choice == '3'):
                 print 'You chose to set a new encryption key'
                 self.key = raw_input('Enter new encryption key: ')
                 self.server.set_key(self.key)
@@ -83,11 +81,11 @@ class TauNet():
     #makes a connection to a host of the user's choosing
     #and sends an encrypted message to the selected host
     def send_message(self):
-        #get username of recipient and message from the user
+        #get a valid username of recipient and message from the user
         valid = False
         while(not valid):
             self.display_users()
-            user = raw_input('Enter the User Name of the person you would like to send a message: ')
+            user = raw_input('Enter the user name of who you would like to send a message: ')
             if(user not in self.user_table.keys()):
                 raw_input('Invalid User Name. Try again.')
                 clear_screen()
@@ -99,23 +97,22 @@ class TauNet():
         plaintext = 'version: ' + self.version + '\nfrom: ' + self.name + '\nto: ' + user + '\n\n' + message
         ciphertext = encrypt(plaintext, self.rounds, self.key)
 
-        #establish a connection and send message to user
-        ##client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #establish a connection and send message to user if it doesn't finish after
+        #5 seconds break the connection.
         try:
             client_socket = socket.create_connection((socket.gethostbyname(self.user_table[user]), self.port), 5)
             client_socket.sendall(ciphertext)
             print 'Message sent successfully!'
         except socket.error, exc:
             print 'User unavailable. Message failed to send.'
-        
-#clears screen by outputting 100 lines
+
 def clear_screen():
-    for i in range(0, 100):
+    for i in range(0,100):
         print ''
 
 def main():
-    a_net = TauNet()
-    a_net.menu()
+    a_client = TauNetClient()
+    a_client.menu()
 
 if __name__ == '__main__':
     main()

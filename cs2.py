@@ -37,7 +37,7 @@ def rc4(length, rounds, key):
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message
 def decrypt(message, rounds, key):
-   iv_length = 16
+   iv_length = 10
    message_len = len(message)
    iv = message[0:iv_length]
    message = message [iv_length:]
@@ -53,7 +53,7 @@ def decrypt(message, rounds, key):
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message.
 def encrypt(message, rounds, key):
-   iv_length = 16
+   iv_length = 10
    message_len = len(message)
    iv = os.urandom(iv_length)
    key = key + iv
