@@ -15,7 +15,7 @@ import sys
 #length: the length of the message to be encrypted/decrypted
 #rounds: the # of rounds to run the key scheduler. should be a minimum of 20
 #key: the encryption key
-def rc4(length, rounds, key):
+def rc4(length, rounds = 20, key):
    key_len = len(key)
    
    #key scheduling repeated for the quantity of rounds specified
@@ -29,15 +29,12 @@ def rc4(length, rounds, key):
 
    #produce the keystream
    keystream = []
-   for i in range(0, length):
-      keystream.append(0)
-
    j = 0
    for i in range(0, length):
       t = (i + 1) % 256
       j = (j + state[t]) % 256
       state[t], state[j] = state[j], state[t]
-      keystream[i] = state[(state[t] + state[j]) % 256]
+      keystream.append(state[(state[t] + state[j]) % 256])
 
    return keystream
       
@@ -45,11 +42,15 @@ def rc4(length, rounds, key):
 #message: the message being decrypted. It should be a message encrypted using RC4.
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message
-def decrypt(message, rounds, key):
+def decrypt(message, rounds = 20, key):
+   #remove the IV from the ciphertext
    iv_length = 10
-   message_len = len(message)
    iv = message[0:iv_length]
    message = message [iv_length:]
+
+   #create the cipher key by appending the recieved IV to the passed key
+   #generate the keystream and decrypt the message
+   message_len = len(message)
    key = key + iv
    keystream = rc4(message_len - iv_length, rounds, key)
    plaintext = ''
@@ -61,11 +62,15 @@ def decrypt(message, rounds, key):
 #message: the message being encrypted. It will be encrypted using the RC4 cipher
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message.
-def encrypt(message, rounds, key):
+def encrypt(message, rounds = 20, key):
+   #generate a random iv to append to the passed key
    iv_length = 10
-   message_len = len(message)
    iv = os.urandom(iv_length)
    key = key + iv
+
+   #create the keystream and encrypt the ciphertext by first adding the iv 
+   #to it for decryption and then appending the ciphertext
+   message_len = len(message)
    keystream = rc4(message_len, rounds, key)
    ciphertext = ''
    ciphertext += iv
