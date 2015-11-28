@@ -1,21 +1,31 @@
+#Copyright (c) 2015 Josh Bucklin
+#CS300 - TauNet
+#This file contains an implementation of CipherSaber-2 which uses RC4.
+#
+#More information about CipherSaber-2 can be found on wikipedia here: https://en.wikipedia.org/wiki/CipherSaber
+#
+#Additionally this implementation is based off of Bart Massey's implementation which can
+#be found on his GitHub account here: https://github.com/BartMassey/ciphersaber2
+
 import os
 import sys
 
-#RC4 Cipher
-#length: the length of the message to be encypted
-#rounds: the # of rounds to run the key scheduler
+#RC4 Cipher - This function creates a keystream that corresponds to the length
+#of a message that is being encrypted/decrypted.
+#length: the length of the message to be encrypted/decrypted
+#rounds: the # of rounds to run the key scheduler. should be a minimum of 20
 #key: the encryption key
 def rc4(length, rounds, key):
    key_len = len(key)
    
-   #key scheduling done reapeated the for the quantity of rounds specified
+   #key scheduling repeated for the quantity of rounds specified
    #create a list of 256 bytes
-   s = range(0, 256)
+   state = range(0, 256)
    j = 0
    for t in range(0, rounds):
       for i in range(0, 256):
-         j = (j + s[i] + ord(key[i % key_len])) % 256
-	 s[i], s[j] = s[j], s[i]
+         j = (j + state[i] + ord(key[i % key_len])) % 256
+	 state[i], state[j] = state[j], state[i]
 
    #produce the keystream
    keystream = []
@@ -23,16 +33,15 @@ def rc4(length, rounds, key):
       keystream.append(0)
 
    j = 0
-   t = 0
    for i in range(0, length):
       t = (i + 1) % 256
-      j = (j + s[t]) % 256
-      s[t], s[j] = s[j], s[t]
-      keystream[i] = s[(s[t] + s[j]) % 256]
+      j = (j + state[t]) % 256
+      state[t], state[j] = state[j], state[t]
+      keystream[i] = state[(state[t] + state[j]) % 256]
 
    return keystream
       
-#CipherSaber-2 decryption
+#CipherSaber-2 decryption.
 #message: the message being decrypted. It should be a message encrypted using RC4.
 #rounds: the # of rounds to run the key scheduler for
 #key: the encryption key used to encrypt the message
