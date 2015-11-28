@@ -1,3 +1,22 @@
+#Copyright (c) 2015 Josh Bucklin
+#CS300 - TauNet
+#TN_Client.py
+#
+#This file contains a client implementation for a TauNet node.
+#
+#It contains a TauNetClient class that enables a user to send messages to other
+#TauNet nodes within their network. The ability to recieve messages is implemented
+#separately in TN_Server.py.
+#
+#For more information about TauNet read the included readme.txt that should be
+#included with this package.
+#
+#Files necessary for the operation of this software:
+#data.txt - contains info about the username associated with this node and port addresses
+#user_table.txt - contains the user table for the TauNet network.
+#
+#If either of these files is not present please read readme.txt for information about how to get them.
+
 import socket
 import threading
 import os, sys, re
@@ -5,32 +24,41 @@ from time import sleep
 from cs2 import encrypt, decrypt, rc4
 
 #A class that acts as a interface to send/recieve messages to/from other users within a TauNet network.
-#It includes an instance of a TauNetServer that is started immmeadiately within a separate thread
 class TauNetClient():
     def __init__(self):
         #open info file and get self.name, version, port and # rounds for keystream
-        a_file = open('info.txt', 'r')
-        self.name = a_file.readline()
-        self.port = int(a_file.readline())
-        self.rounds = int(a_file.readline())
-        self.version = a_file.readline()
-        a_file.close()
+        try:
+            a_file = open('data.txt', 'r')
+            self.name = a_file.readline()
+            self.port = int(a_file.readline())
+            self.rounds = int(a_file.readline())
+            self.version = a_file.readline()
+            a_file.close()
+        except:
+            print 'An error occured while reading data.txt.'
+            sys.exit(0)
+            
         
-        #read contents in from local file user_table.txt
-        #as the contents are read it only adds usernames that meet the TauNet protocol requirements
-        self.user_table = {}
-        a_file = open('user_table.txt', 'r')
-        for line in a_file:
-            line = line.rstrip().split('|')
-            if(not re.match('^[A-Za-z0-9-]{3,}$',line[0])):
-               continue
-            self.user_table.update({line[0]:line[1]})
-        a_file.close()
+        #read contents in from local file user_table.txt as the contents are read it only
+        #adds usernames that meet the TauNet protocol requirements.
+        try:
+            self.user_table = {}
+            a_file = open('user_table.txt', 'r')
+            for line in a_file:
+                line = line.rstrip().split('|')
+                if(not re.match('^[A-Za-z0-9-]{3,30}$',line[0])):
+                   continue
+                self.user_table.update({line[0]:line[1]})
+            a_file.close()
+        except:
+            print 'An error occured while reading user_table.txt'
+            sys.exit(0)
 
         #welcome the user and get encryption key from the user
         clear_screen()
         self.welcome()
 
+    #a function that welcomes the user and gets key value for session
     def welcome(self):
         print 'Welcome to your TauNet Client'
         print 'With this program you will be able to send messages to other'
@@ -42,8 +70,8 @@ class TauNetClient():
 
         self.key = raw_input('Enter the encryption key for this session: ')
         
-    #main loop of the program
-    #gives the user options to view/send messages, view user table, and exit
+    #main loop of the program that gives the user options to view/send messages,
+    #view the user table, and exit
     def menu(self):
         choice = ''
         while(choice != '0'):
@@ -78,8 +106,8 @@ class TauNetClient():
         for user in self.user_table:
             print user.ljust(15) + self.user_table[user].ljust(10)
 
-    #makes a connection to a host of the user's choosing
-    #and sends an encrypted message to the selected host
+    #makes a connection to a TauNet node of the user's choosing and sends an encrypted
+    #message to the selected TauNet node
     def send_message(self):
         #get a valid username of recipient and message from the user
         valid = False
