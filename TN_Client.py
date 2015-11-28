@@ -110,11 +110,12 @@ class TauNetClient():
     #message to the selected TauNet node
     def send_message(self):
         #get a valid username of recipient and message from the user
+        user = ''
         valid = False
-        while(not valid):
+        while(not valid and user != 'cancel'):
             self.display_users()
-            user = raw_input('Enter the user name of who you would like to send a message: ')
-            if(user not in self.user_table.keys()):
+            user = raw_input('Who would you like to send a message to? (type cancel return to main menu): '
+            if(user != 'cancel' and user not in self.user_table.keys()):
                 raw_input('Invalid User Name. Try again.')
                 clear_screen()
                 continue
