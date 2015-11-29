@@ -67,10 +67,10 @@ class TauNetServer(threading.Thread):
         #get program data from data.txt
         try:
             a_file = open('data.txt', 'r')
-            self.name = a_file.readline()
+            self.name = a_file.readline().rstrip()
             self.port = int(a_file.readline())
             self.rounds = int(a_file.readline())
-            self.version = a_file.readline()
+            self.version = a_file.readline().rstrip()
             self.max_header = int(a_file.readline())
             self.max_message = int(a_file.readline())
             a_file.close()
@@ -100,7 +100,7 @@ class TauNetServer(threading.Thread):
             conn.close()
             
             #display a message in its own thread so that more connections can be made
-            threading.Thread(target = self.display_message, args = (ciphertext, addr))
+            threading.Thread(target = self.display_message, args = (ciphertext, addr)).start()
 
         server_socket.close()
 
@@ -115,10 +115,10 @@ class TauNetServer(threading.Thread):
     def display_message(self, ciphertext, address):
         plaintext = decrypt(ciphertext, self.rounds, self.key)
         mutex.acquire()
-        if(address not in self.known_adresses):
-            print 'This message came from an unkown user with IP: ' + address
+        if(address[0] not in self.known_addresses):
+            print 'WARNING: This message came from an unknown user with IP: ' + address[0]
         if(self.version not in plaintext.split('\r\n')[0]):
-            print 'The sending user is using a different version of TauNet.'
+            print 'WARNING: The sending user is using a different version of TauNet.'
         print plaintext
         mutex.release()
 
@@ -150,7 +150,7 @@ class TauNetServer(threading.Thread):
 
         self.key = raw_input('Enter an encryption key to use for this session: ')
 
-        print '\nType help for usage instructions.\n'
+        print '\nType help for usage instructions.'
         print 'Now awaiting incoming messages.\n'
 
 

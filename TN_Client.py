@@ -44,10 +44,10 @@ class TauNetClient():
         #open info file and get self.name, version, port and # rounds for keystream
         try:
             a_file = open('data.txt', 'r')
-            self.name = a_file.readline()
+            self.name = a_file.readline().rstrip()
             self.port = int(a_file.readline())
             self.rounds = int(a_file.readline())
-            self.version = a_file.readline()
+            self.version = a_file.readline().rstrip()
             self.max_header = int(a_file.readline())
             self.max_message = int(a_file.readline())
             self.max_input = self.max_message - self.max_header
@@ -132,7 +132,8 @@ class TauNetClient():
         valid = False
         while(not valid and user != 'cancel'):
             self.display_users()
-            user = raw_input('Who would you like to send a message to? (type cancel return to main menu): ')
+            print 'Type cancel to return to main menu'
+            user = raw_input('Who would you like to send a message to?: ')
             if(user != 'cancel' and user not in self.user_table.keys()):
                 raw_input('Invalid User Name. Try again.')
                 clear_screen()
