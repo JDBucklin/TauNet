@@ -2,7 +2,6 @@ jt|tealdulcet.ddns.net
 patter5|megmurry.ddns.net
 relsqui|cupcake.chiliahedron.com
 pyrrh|souffle.chiliahedron.com
-aarong|TBD
 mancat|inchworm.mindtax.net
 dom|mahan.mindtax.net
 brodie|solar.noip.me
@@ -16,3 +15,7 @@ natreed|natreed.ddns.net
 leng|lengpi.ddns.net
 aldridge85|csjosh.ddns.net
 etsai|etsai.ddns.net
+po8|po8.org
+mantron|mantron.ddns.net
+jojen2|itsjonnyjyo.ddns.net
+cort|wyeast.ddns.net

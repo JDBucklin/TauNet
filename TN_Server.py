@@ -51,13 +51,14 @@ class TauNetServer(threading.Thread):
         self.running = True
 
         #create a list of known IP addresses
-        known_addresses = []
+        self.known_addresses = []
         try:
             a_file = open('user_table.txt', 'r')
             for line in a_file:
-                line = line.split('|')
-                known_addresses.append(socket.gethostbyname(line[1]))
+                line = line.rstrip().split('|')
+                self.known_addresses.append(socket.gethostbyname(line[1]))
             a_file.close()
+            print self.known_addresses
         except:
             print 'There was an error reading user_table.txt'
             sys.exit(0)
@@ -96,12 +97,14 @@ class TauNetServer(threading.Thread):
             conn, addr = server_socket.accept()
             ciphertext = conn.recv(self.max_message)
             conn.close()
-            print decrypt(ciphertext, self.rounds, self.key)
+            threading.Thread(target = self.display_message, args = (ciphertext, addr))
 
         server_socket.close()
 
-    def set_key(self, key):
-        self.key = key
+    def set_key(self):
+        mutex.acquire()
+        self.key = raw_input('Enter an encryption key to use for this session: ')
+        mutex.release()
 
     #takes cipher text, decrypts it and displays it on the screen
     #address is the IP of the sender. If it's not a known sender the user is warned.
@@ -110,7 +113,16 @@ class TauNetServer(threading.Thread):
         mutex.acquire()
         if(address not in self.known_adresses):
             print 'This message came from an unkown user with IP: ' + address
+        if(self.version not in plaintext.split('\r\n')[0]):
+            print 'The sending user is using a different version of TauNet.'
         print plaintext
+        mutex.release()
+
+    def display_usage(self):
+        mutex.acquire()
+        print 'You are currently waiting for messages'
+        print 'Type exit and press enter to exit.'
+        print 'Type key and press enter to set a new key'
         mutex.release()
 
     #waits for input from the user and executes approriate commands
@@ -118,6 +130,10 @@ class TauNetServer(threading.Thread):
         choice = ''
         while(choice != 'exit'):
             choice = raw_input()
+            if(choice == 'help'):
+                self.display_usage()
+            if(choice == 'key'):
+                self.set_key()
 
     #displays a welcome message when the server is started
     def welcome(self):
@@ -129,8 +145,8 @@ class TauNetServer(threading.Thread):
 
         self.key = raw_input('Enter an encryption key to use for this session: ')
 
-        print 'Thank you. Now awaiting incoming messages.\n'
-        print 'If you would like to stop the server type exit and press enter.\n'
+        print 'Type help for usage instructions.'
+        print 'Now awaiting incoming messages.\n'
 
 
 def clear_screen():

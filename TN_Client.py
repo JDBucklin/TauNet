@@ -150,10 +150,10 @@ class TauNetClient():
                continue
             valid = True
                
-        plaintext = 'version: ' + self.version + '\n\r' + \
-                    'from: ' + self.name + '\n\r' + \
-                    'to: ' + user + '\n\r\n' + \
-                    message + '\n\r'
+        plaintext = 'version: ' + self.version + '\r\n' + \
+                    'from: ' + self.name + '\r\n' + \
+                    'to: ' + user + '\r\n\n' + \
+                    message + '\r\n'
         ciphertext = encrypt(plaintext, self.rounds, self.key)
 
         #establish a connection and send message to user if it doesn't finish after
