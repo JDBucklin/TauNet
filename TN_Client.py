@@ -16,6 +16,19 @@
 #user_table.txt - contains the user table for the TauNet network.
 #
 #If either of these files is not present please read readme.txt for information about how to get them.
+#
+#A note about max message length. It is currently specified in TauNet Protocol v0.2 that the max # of
+#bytes per message is 1024. The maximum # of bytes in the header section is:
+#Header	Space	Payload	Line Ending
+#8	1	3	2
+#5	1	30	2
+#3	1	30	2
+#0	1	0	2 <----space in between header and message and trailing newline/return of message
+#		Total	91
+#which leaves 1024 - 89 = 933 characters that can be used in the actual message.
+#this # is stored in the data.txt file.
+
+
 
 import socket
 import threading
@@ -33,6 +46,7 @@ class TauNetClient():
             self.port = int(a_file.readline())
             self.rounds = int(a_file.readline())
             self.version = a_file.readline()
+            self.max_message = a_file.readline()
             a_file.close()
         except:
             print 'An error occured while reading data.txt.'
@@ -114,15 +128,22 @@ class TauNetClient():
         valid = False
         while(not valid and user != 'cancel'):
             self.display_users()
-            user = raw_input('Who would you like to send a message to? (type cancel return to main menu): '
+            user = raw_input('Who would you like to send a message to? (type cancel return to main menu): ')
             if(user != 'cancel' and user not in self.user_table.keys()):
                 raw_input('Invalid User Name. Try again.')
                 clear_screen()
                 continue
             valid = True
 
-        message = raw_input('Enter a message to send ' + user + ': ')
-
+        #get a message from the user of the appropriate size, prepend the headers, and convert it to cipher text
+        valid = False
+        while(not valid):
+            message = raw_input('Enter a message to send ' + user + ' (Max Message Length = ' + self.max_message + ': ')
+            if(len(message > self.max_message):
+               raw_input('Message exceeds max length. Try again')
+               continue
+            valid = True
+               
         plaintext = 'version: ' + self.version + '\nfrom: ' + self.name + '\nto: ' + user + '\n\n' + message
         ciphertext = encrypt(plaintext, self.rounds, self.key)
 
