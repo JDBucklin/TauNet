@@ -26,7 +26,7 @@
 #0	1	0	2 <----space in between header and message and trailing newline/return of message
 #		Total	91
 #which leaves 1024 - 89 = 933 characters that can be used in the actual message.
-#this # is stored in the data.txt file.
+#this numbers are stored in data.txt.
 
 
 
@@ -46,7 +46,9 @@ class TauNetClient():
             self.port = int(a_file.readline())
             self.rounds = int(a_file.readline())
             self.version = a_file.readline()
-            self.max_message = a_file.readline()
+            self.max_header = int(a_file.readline())
+            self.max_message = int(a_file.readline())
+            self.max_input = self.max_message - self.max_header
             a_file.close()
         except:
             print 'An error occured while reading data.txt.'
@@ -135,16 +137,23 @@ class TauNetClient():
                 continue
             valid = True
 
+        if(user == 'cancel'):
+            print 'Returning to main menu'
+            return
+        
         #get a message from the user of the appropriate size, prepend the headers, and convert it to cipher text
         valid = False
         while(not valid):
-            message = raw_input('Enter a message to send ' + user + ' (Max Message Length = ' + self.max_message + ': ')
-            if(len(message > self.max_message):
+            message = raw_input('Enter a message to send ' + user + ' (Max Message Length = ' + str(self.max_input) + '): ')
+            if(len(message) > self.max_input):
                raw_input('Message exceeds max length. Try again')
                continue
             valid = True
                
-        plaintext = 'version: ' + self.version + '\nfrom: ' + self.name + '\nto: ' + user + '\n\n' + message
+        plaintext = 'version: ' + self.version + '\n\r' + \
+                    'from: ' + self.name + '\n\r' + \
+                    'to: ' + user + '\n\r\n' + \
+                    message + '\n\r'
         ciphertext = encrypt(plaintext, self.rounds, self.key)
 
         #establish a connection and send message to user if it doesn't finish after
