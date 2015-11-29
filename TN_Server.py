@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #Copyright (c) 2015 Josh Bucklin
 #CS300 - TauNet
 #TN_Server.py
@@ -96,6 +98,7 @@ class TauNetServer(threading.Thread):
             conn, addr = server_socket.accept()
             ciphertext = conn.recv(self.max_message)
             conn.close()
+            
             #display a message in its own thread so that more connections can be made
             threading.Thread(target = self.display_message, args = (ciphertext, addr))
 

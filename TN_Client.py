@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #Copyright (c) 2015 Josh Bucklin
 #CS300 - TauNet
 #TN_Client.py
