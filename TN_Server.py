@@ -38,26 +38,43 @@ from cs2 import encrypt, decrypt, rc4
 mutex = threading.Lock() 
 
 #a TauNet server that allows single messages to be recieved from other TauNet users
-#as a precaution before use it's important to note that this class makes no aim to
-#eliminate connections from users from outside the TauNet network.
+#It's important to note that this class makes no aim to eliminate connections from
+#users from outside the TauNet network.
 class TauNetServer(threading.Thread):
     def __init__(self):
-        #acquire the mutex until the server is running. this provides a way to ensure
-        #that the server is started properly before giving the user options of what to do.
-        #this mutex is released in the run() function after the server is started.
+        #mutex is acquired until the server is running. It is realeased in run().
+        #this prevents the main loop from being started until the server it started.
         mutex.acquire()
         self.key = ''
         self.welcome()
         threading.Thread.__init__(self)
         self.running = True
 
-        #get port and # of rounds from data.txt
-        a_file = open('data.txt', 'r')
-        self.name = a_file.readline()
-        self.port = int(a_file.readline())
-        self.rounds = int(a_file.readline())
-        self.version = a_file.readline()
-        a_file.close()
+        #create a list of known IP addresses
+        known_addresses = []
+        try:
+            a_file = open('user_table.txt', 'r')
+            for line in a_file:
+                line = line.split('|')
+                known_addresses.append(socket.gethostbyname(line[1]))
+            a_file.close()
+        except:
+            print 'There was an error reading user_table.txt'
+            sys.exit(0)
+            
+        #get program data from data.txt
+        try:
+            a_file = open('data.txt', 'r')
+            self.name = a_file.readline()
+            self.port = int(a_file.readline())
+            self.rounds = int(a_file.readline())
+            self.version = a_file.readline()
+            self.max_header = int(a_file.readline())
+            self.max_message = int(a_file.readline())
+            a_file.close()
+        except:
+            print 'There was an error reading data.txt'
+            sys.exit(0)
         
     def run(self):
         host = '' #generic '' allows connections from any host
@@ -65,20 +82,19 @@ class TauNetServer(threading.Thread):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             server_socket.bind((host, self.port))
+            mutex.release()
         except socket.error, msg:
             print '\nBind failed. Error Code: ' + str(msg[0]) + ' Message: ' + str(msg[1])
             print 'Another instance of TauNet might be running on this computer.'
             print 'Close any other sessions and restart TauNet.'
-            return False
-        finally:
             mutex.release()
-        
+            return False
 
         #start server and listen for connections
         server_socket.listen(10)
         while self.running:
             conn, addr = server_socket.accept()
-            ciphertext = conn.recv(1024)
+            ciphertext = conn.recv(self.max_message)
             conn.close()
             print decrypt(ciphertext, self.rounds, self.key)
 
@@ -87,9 +103,19 @@ class TauNetServer(threading.Thread):
     def set_key(self, key):
         self.key = key
 
+    #takes cipher text, decrypts it and displays it on the screen
+    #address is the IP of the sender. If it's not a known sender the user is warned.
+    def display_message(self, ciphertext, address):
+        plaintext = decrypt(ciphertext, self.rounds, self.key)
+        mutex.acquire()
+        if(address not in self.known_adresses):
+            print 'This message came from an unkown user with IP: ' + address
+        print plaintext
+        mutex.release()
+
     #waits for input from the user and executes approriate commands
     def menu(self):
-        choice = '0'
+        choice = ''
         while(choice != 'exit'):
             choice = raw_input()
 
@@ -112,9 +138,9 @@ def clear_screen():
         print ''
     
 def main():
-    #create server and start it
-    #if the server failed to start exit the program the mutex is used to prevent
-    #the main loop of the program from starting in the event the server fails to start
+    #create the server and start it
+    #if the server failed to start then the program is stopped the mutex is used to prevent
+    #the main loop of the program from starting if this happens.
     a_server = TauNetServer()
     a_server.setDaemon(True)
     a_server.start()
