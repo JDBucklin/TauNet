@@ -34,7 +34,7 @@ import os, sys, re
 from time import sleep
 from cs2 import encrypt, decrypt, rc4
 
-#used to prevent multiple functions from printing to the screen at the same time
+#GLOBAL VARIABLES -- VARIABLE NAMES EXPECTED TO NOT BE ASSIGNED ANYWHERE ELSE
 mutex = threading.Lock() 
 
 #a TauNet server that allows single messages to be recieved from other TauNet users
@@ -58,7 +58,6 @@ class TauNetServer(threading.Thread):
                 line = line.rstrip().split('|')
                 self.known_addresses.append(socket.gethostbyname(line[1]))
             a_file.close()
-            print self.known_addresses
         except:
             print 'There was an error reading user_table.txt'
             sys.exit(0)
@@ -97,6 +96,7 @@ class TauNetServer(threading.Thread):
             conn, addr = server_socket.accept()
             ciphertext = conn.recv(self.max_message)
             conn.close()
+            #display a message in its own thread so that more connections can be made
             threading.Thread(target = self.display_message, args = (ciphertext, addr))
 
         server_socket.close()
@@ -108,6 +108,7 @@ class TauNetServer(threading.Thread):
 
     #takes cipher text, decrypts it and displays it on the screen
     #address is the IP of the sender. If it's not a known sender the user is warned.
+    #also if the senders TauNet version is different a warning is displayed
     def display_message(self, ciphertext, address):
         plaintext = decrypt(ciphertext, self.rounds, self.key)
         mutex.acquire()
@@ -118,11 +119,12 @@ class TauNetServer(threading.Thread):
         print plaintext
         mutex.release()
 
+    #displays the help menu for the server
     def display_usage(self):
         mutex.acquire()
-        print 'You are currently waiting for messages'
-        print 'Type exit and press enter to exit.'
-        print 'Type key and press enter to set a new key'
+        print '\n--Help Menu--'
+        print 'Type exit and press enter to exit'
+        print 'Type key and press enter to set a new key\n'
         mutex.release()
 
     #waits for input from the user and executes approriate commands
@@ -145,7 +147,7 @@ class TauNetServer(threading.Thread):
 
         self.key = raw_input('Enter an encryption key to use for this session: ')
 
-        print 'Type help for usage instructions.'
+        print '\nType help for usage instructions.\n'
         print 'Now awaiting incoming messages.\n'
 
 
@@ -155,12 +157,12 @@ def clear_screen():
     
 def main():
     #create the server and start it
-    #if the server failed to start then the program is stopped the mutex is used to prevent
-    #the main loop of the program from starting if this happens.
+    #if the server failed to start then the program is stopped.
     a_server = TauNetServer()
     a_server.setDaemon(True)
     a_server.start()
 
+    #this mutex is waiting for the server to release the mutex once it has started
     mutex.acquire()
     if(not a_server.isAlive()):
         sys.exit()
