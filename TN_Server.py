@@ -1,19 +1,58 @@
+#Copyright (c) 2015 Josh Bucklin
+#CS300 - TauNet
+#TN_Server.py
+#
+#This file contains a server implementation for a TauNet node.
+#
+#It contains a TauNetServer class that enables a user to recieve messages from other
+#TauNet nodes within their network. The ability to send messages is implemented
+#separately in TN_Client.py.
+#
+#For more information about TauNet read the included readme.txt that should be
+#included with this package.
+#
+#Files necessary for the operation of this software:
+#data.txt - contains info about the username associated with this node and port addresses
+#user_table.txt - contains the user table for the TauNet network.
+#
+#If either of these files is not present please read readme.txt for information about how to get them.
+#
+#A note about max message length. It is currently specified in TauNet Protocol v0.2 that the max # of
+#bytes per message is 1024. The maximum # of bytes in the header section is:
+#Header	Space	Payload	Line Ending
+#8	1	3	2
+#5	1	30	2
+#3	1	30	2
+#0	1	0	2 <----space in between header and message and trailing newline/return of message
+#		Total	91
+#which leaves 1024 - 89 = 933 characters that can be used in the actual message.
+#these numbers are stored in data.txt.
+
 import socket
 import threading
 import os, sys, re
 from time import sleep
 from cs2 import encrypt, decrypt, rc4
 
-#a TauNet server that allows single messages to be recieved
+#used to prevent multiple functions from printing to the screen at the same time
+mutex = threading.Lock() 
+
+#a TauNet server that allows single messages to be recieved from other TauNet users
+#as a precaution before use it's important to note that this class makes no aim to
+#eliminate connections from users from outside the TauNet network.
 class TauNetServer(threading.Thread):
     def __init__(self):
+        #acquire the mutex until the server is running. this provides a way to ensure
+        #that the server is started properly before giving the user options of what to do.
+        #this mutex is released in the run() function after the server is started.
+        mutex.acquire()
         self.key = ''
         self.welcome()
         threading.Thread.__init__(self)
         self.running = True
 
-        #get port and # of rounds from info.txt
-        a_file = open('info.txt', 'r')
+        #get port and # of rounds from data.txt
+        a_file = open('data.txt', 'r')
         self.name = a_file.readline()
         self.port = int(a_file.readline())
         self.rounds = int(a_file.readline())
@@ -31,6 +70,9 @@ class TauNetServer(threading.Thread):
             print 'Another instance of TauNet might be running on this computer.'
             print 'Close any other sessions and restart TauNet.'
             return False
+        finally:
+            mutex.release()
+        
 
         #start server and listen for connections
         server_socket.listen(10)
@@ -70,13 +112,17 @@ def clear_screen():
         print ''
     
 def main():
-    #set up server and start it if it fails to start then exit the program
+    #create server and start it
+    #if the server failed to start exit the program the mutex is used to prevent
+    #the main loop of the program from starting in the event the server fails to start
     a_server = TauNetServer()
     a_server.setDaemon(True)
     a_server.start()
-    sleep(0.5)
+
+    mutex.acquire()
     if(not a_server.isAlive()):
         sys.exit()
+    mutex.release()
 
     #wait for user to exit
     a_server.menu()
