@@ -1,4 +1,5 @@
 Copyright (c) 2015 Josh Bucklin
+TauNet v1.0
 
 --OVERVIEW--
 TauNet is a communication software developed as part of class project for CS300 at Portland State University. The central purpose of this project was to create a means of secure communication across the internet in a small previously established network using a Raspberry Pi 2.
