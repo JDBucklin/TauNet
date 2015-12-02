@@ -124,10 +124,8 @@ class TauNetClient():
         for user in self.user_table:
             print user.ljust(15) + self.user_table[user].ljust(10)
 
-    #makes a connection to a TauNet node of the user's choosing and sends an encrypted
-    #message to the selected TauNet node
-    def send_message(self):
-        #get a valid username of recipient and message from the user
+    #get a valid username of a recipient from the user
+    def get_reciever(self):
         user = ''
         valid = False
         while(not valid and user != 'cancel'):
@@ -140,23 +138,34 @@ class TauNetClient():
                 continue
             valid = True
 
-        if(user == 'cancel'):
-            print 'Returning to main menu'
-            return
-        
-        #get a message from the user of the appropriate size, prepend the headers, and convert it to cipher text
+        return user
+
+    def get_message(self, user):
+        #get a message from the user of the appropriate size
         valid = False
         while(not valid):
-            message = raw_input('Enter a message to send ' + user + ' (Max Message Length = ' + str(self.max_input) + '): ')
+            message = raw_input('Enter a message to send ' + user + ' (Max Length = ' + str(self.max_input) + ' characters): ')
             if(len(message) > self.max_input):
                raw_input('Message exceeds max length. Try again')
                continue
             valid = True
-               
+
+        return message
+    
+    #makes a connection to a TauNet node of the user's choosing and sends an encrypted
+    #message to the selected TauNet node
+    def send_message(self):
+        user = self.get_reciever()
+        if(user == 'cancel'):
+            print 'Returning to main menu.'
+            return
+
+        #generate ciphertext
+        message = self.get_message(user)
         plaintext = 'version: ' + self.version + '\r\n' + \
                     'from: ' + self.name + '\r\n' + \
-                    'to: ' + user + '\r\n\n' + \
-                    message + '\r\n'
+                    'to: ' + user + '\r\n\r\n' + \
+                    message
         ciphertext = encrypt(plaintext, self.rounds, self.key)
 
         #establish a connection and send message to user if it doesn't finish after

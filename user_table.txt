@@ -19,3 +19,4 @@ po8|po8.org
 mantron|mantron.ddns.net
 jojen2|itsjonnyjyo.ddns.net
 cort|wyeast.ddns.net
+bart|barton.cs.pdx.edu

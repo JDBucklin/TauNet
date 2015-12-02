@@ -51,19 +51,28 @@ class TauNetServer(threading.Thread):
         self.welcome()
         threading.Thread.__init__(self)
         self.running = True
-
-        #create a list of known IP addresses
         self.known_addresses = []
+        self.user_table = {}
+
+        #load class data from local files user_table.txt and data.txt
+        self.load_users()
+        self.load_data()
+
+    def load_users(self):
         try:
             a_file = open('user_table.txt', 'r')
             for line in a_file:
                 line = line.rstrip().split('|')
+                if(not re.match('^[A-Za-z0-9-]{3,30}$',line[0])):
+                    continue
+                self.user_table.update({line[0]:line[1]})
                 self.known_addresses.append(socket.gethostbyname(line[1]))
             a_file.close()
         except:
             print 'There was an error reading user_table.txt'
             sys.exit(0)
-            
+
+    def load_data(self):
         #get program data from data.txt
         try:
             a_file = open('data.txt', 'r')
@@ -77,7 +86,7 @@ class TauNetServer(threading.Thread):
         except:
             print 'There was an error reading data.txt'
             sys.exit(0)
-        
+    
     def run(self):
         host = '' #generic '' allows connections from any host
         
@@ -90,7 +99,7 @@ class TauNetServer(threading.Thread):
             print 'Another instance of TauNet might be running on this computer.'
             print 'Close any other sessions and restart TauNet.'
             mutex.release()
-            return False
+            return False        
 
         #start server and listen for connections
         server_socket.listen(10)
@@ -104,6 +113,15 @@ class TauNetServer(threading.Thread):
 
         server_socket.close()
 
+    #allows the user to display all users of their network
+    def display_users(self):
+        mutex.acquire()
+        print 'User Table:\n' + 'User Name'.ljust(15) + 'IP'.ljust(10)
+        for user in self.user_table:
+            print user.ljust(15) + self.user_table[user].ljust(10)
+        print ''
+        mutex.release()
+        
     def set_key(self):
         mutex.acquire()
         self.key = raw_input('Enter an encryption key to use for this session: ')
@@ -127,7 +145,8 @@ class TauNetServer(threading.Thread):
         mutex.acquire()
         print '\n--Help Menu--'
         print 'Type exit and press enter to exit'
-        print 'Type key and press enter to set a new key\n'
+        print 'Type key and press enter to set a new key'
+        print 'Type view to view TauNet users in your network\n'
         mutex.release()
 
     #waits for input from the user and executes approriate commands
@@ -139,6 +158,8 @@ class TauNetServer(threading.Thread):
                 self.display_usage()
             if(choice == 'key'):
                 self.set_key()
+            if(choice == 'view'):
+                self.display_users()
 
     #displays a welcome message when the server is started
     def welcome(self):
