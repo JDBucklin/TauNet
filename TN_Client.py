@@ -10,27 +10,8 @@
 #TauNet nodes within their network. The ability to recieve messages is implemented
 #separately in TN_Server.py.
 #
-#For more information about TauNet read the included readme.txt that should be
-#included with this package.
+#For more information about TauNet read the included readme.txt with this package
 #
-#Files necessary for the operation of this software:
-#data.txt - contains info about the username associated with this node and port addresses
-#user_table.txt - contains the user table for the TauNet network.
-#
-#If either of these files is not present please read readme.txt for information about how to get them.
-#
-#A note about max message length. It is currently specified in TauNet Protocol v0.2 that the max # of
-#bytes per message is 1024. The maximum # of bytes in the header section is:
-#Header	Space	Payload	Line Ending
-#8	1	3	2
-#5	1	30	2
-#3	1	30	2
-#0	1	0	2 <----space in between header and message and trailing newline/return of message
-#		Total	91
-#which leaves 1024 - 89 = 933 characters that can be used in the actual message.
-#this numbers are stored in data.txt.
-
-
 
 import socket
 import threading

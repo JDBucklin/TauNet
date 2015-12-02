@@ -10,25 +10,8 @@
 #TauNet nodes within their network. The ability to send messages is implemented
 #separately in TN_Client.py.
 #
-#For more information about TauNet read the included readme.txt that should be
-#included with this package.
+#For more information about TauNet read the included readme.txt included with this package.
 #
-#Files necessary for the operation of this software:
-#data.txt - contains info about the username associated with this node and port addresses
-#user_table.txt - contains the user table for the TauNet network.
-#
-#If either of these files is not present please read readme.txt for information about how to get them.
-#
-#A note about max message length. It is currently specified in TauNet Protocol v0.2 that the max # of
-#bytes per message is 1024. The maximum # of bytes in the header section is:
-#Header	Space	Payload	Line Ending
-#8	1	3	2
-#5	1	30	2
-#3	1	30	2
-#0	1	0	2 <----space in between header and message and trailing newline/return of message
-#		Total	91
-#which leaves 1024 - 89 = 933 characters that can be used in the actual message.
-#these numbers are stored in data.txt.
 
 import socket
 import threading
@@ -56,6 +39,8 @@ class TauNetServer(threading.Thread):
         self.load_users()
         self.load_data()
 
+    #load user_table from local user_table.txt file
+    #only load usernames that meet the TauNet criteria.
     def load_users(self):
         try:
             a_file = open('user_table.txt', 'r')
@@ -70,8 +55,8 @@ class TauNetServer(threading.Thread):
             print 'There was an error reading user_table.txt'
             sys.exit(0)
 
+    #get program data from data.txt
     def load_data(self):
-        #get program data from data.txt
         try:
             a_file = open('data.txt', 'r')
             self.name = a_file.readline().rstrip()
@@ -97,7 +82,7 @@ class TauNetServer(threading.Thread):
             print 'Close any other sessions and restart TauNet.'
             self.running = False
 
-        assert self.running = True, 'Server failed to start'
+        assert self.running == True, 'Server failed to start'
       
         #start server and listen for connections
         server_socket.listen(10)
@@ -139,7 +124,7 @@ class TauNetServer(threading.Thread):
             print 'WARNING: This message came from an unknown user with IP: ' + address[0]
         if(self.version not in plaintext.split('\r\n')[0]):
             print 'WARNING: The sending user is using a different version of TauNet.'
-        print plaintext
+        print plaintext + '\r\n'
         mutex.release()
 
     #displays the help menu for the server
