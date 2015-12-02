@@ -44,17 +44,15 @@ mutex = threading.Lock()
 #users from outside the TauNet network.
 class TauNetServer(threading.Thread):
     def __init__(self):
-        #mutex is acquired until the server is running. It is realeased in run().
-        #this prevents the main loop from being started until the server it started.
-        mutex.acquire()
+        #variables
         self.key = ''
+        self.known_addresses = [] #a list of known IP's to warn of unwanted connections
+        self.user_table = {}
+        self.running = True
+
+        #welcome user, start server, and load local data from files
         self.welcome()
         threading.Thread.__init__(self)
-        self.running = True
-        self.known_addresses = []
-        self.user_table = {}
-
-        #load class data from local files user_table.txt and data.txt
         self.load_users()
         self.load_data()
 
@@ -93,21 +91,25 @@ class TauNetServer(threading.Thread):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             server_socket.bind((host, self.port))
-            mutex.release()
         except socket.error, msg:
             print '\nBind failed. Error Code: ' + str(msg[0]) + ' Message: ' + str(msg[1])
             print 'Another instance of TauNet might be running on this computer.'
             print 'Close any other sessions and restart TauNet.'
-            mutex.release()
-            return False        
+            self.running = False
 
+        assert self.running = True, 'Server failed to start'
+      
         #start server and listen for connections
         server_socket.listen(10)
         while self.running:
             conn, addr = server_socket.accept()
             ciphertext = conn.recv(self.max_message)
             conn.close()
-            
+
+            #TauNet Protocol v0.2 specifies discarding messages of 0 length
+            if(len(ciphertext) ==  0):
+                continue
+
             #display a message in its own thread so that more connections can be made
             threading.Thread(target = self.display_message, args = (ciphertext, addr)).start()
 
@@ -152,7 +154,7 @@ class TauNetServer(threading.Thread):
     #waits for input from the user and executes approriate commands
     def menu(self):
         choice = ''
-        while(choice != 'exit'):
+        while(choice != 'exit' and self.running == True):
             choice = raw_input()
             if(choice == 'help'):
                 self.display_usage()
@@ -185,12 +187,6 @@ def main():
     a_server = TauNetServer()
     a_server.setDaemon(True)
     a_server.start()
-
-    #this mutex is waiting for the server to release the mutex once it has started
-    mutex.acquire()
-    if(not a_server.isAlive()):
-        sys.exit()
-    mutex.release()
 
     #wait for user to exit
     a_server.menu()
