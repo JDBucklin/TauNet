@@ -31,7 +31,8 @@ class TauNetClient():
             self.version = a_file.readline().rstrip()
             self.max_header = int(a_file.readline())
             self.max_message = int(a_file.readline())
-            self.max_input = self.max_message - self.max_header
+            self.IV_length = int(a_file.readline())
+            self.max_input = self.max_message - self.max_header - self.IV_length
             a_file.close()
         except:
             print 'An error occured while reading data.txt.'
@@ -89,7 +90,6 @@ class TauNetClient():
             elif(choice == '3'):
                 print 'You chose to set a new encryption key'
                 self.key = raw_input('Enter new encryption key: ')
-                self.server.set_key(self.key)
             elif(choice == '0'):
                 print 'You chose to exit. Goodbye.'
             else:

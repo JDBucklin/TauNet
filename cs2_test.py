@@ -6,6 +6,7 @@
 #a program to test the general functionality of cs2.py
 
 from cs2 import rc4, encrypt, decrypt
+import sys
 
 def in_out_test():
     #variables
@@ -106,10 +107,39 @@ def print_result(before, after):
         print 'Test: PASS'
     else:
         print 'Test: FAIL'
+
+#verifies the # of bytes correct for all levels of encryption
+#this project uses 10byte IV so it's expected that encrypt will be
+#10 more bytes than both plain and decrypt
+def size_verification():
+    #variables
+    test_string = ''
+    enc_string = ''
+    dec_string = ''
+    key1 = 'pass'
+    round1 = 20
+
+    #set a test string and verify sizes
+    test_string = 'This is a test string'
+    encrypted = encrypt(test_string, round1, key1)
+    decrypted = decrypt(encrypted, round1, key1)
     
+    print 'Size of original: ' + str(sys.getsizeof(test_string))
+    print 'Size of encrypted: ' + str(sys.getsizeof(encrypted))
+    print 'Size of decrypted: ' + str(sys.getsizeof(decrypted))
+
+    print test_string
+    print encrypted
+    print decrypted
+    if(sys.getsizeof(test_string) == sys.getsizeof(encrypted) - 10):
+        print 'Test Pass'
+    else:
+        print 'Test Fail'
+        
 def main():
     in_out_test()
     fail_test()
+    size_verification()
 
 if __name__ == '__main__':
     main()

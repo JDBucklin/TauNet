@@ -31,6 +31,7 @@ Line 3: rounds of key scheduling - default 20 according to TauNet protocol v0.2
 Line 4: version # - this release is 0.2
 Line 5: max header size - default 90 explained below
 Line 6: max message size - default 1KB according to TauNet protocol v0.2
+Line 7: IV length used for encrypting messages. This is necessary to calculate total allowable input.
 
 Note: This is how max header size is calculated in accordance with TauNet protocol v0.2
 Header	Space	Payload	Line Ending	
