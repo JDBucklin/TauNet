@@ -106,7 +106,7 @@ class TauNetClient():
             print user.ljust(15) + self.user_table[user].ljust(10)
 
     #get a valid username of a recipient from the user
-    def get_reciever(self):
+    def get_receiver(self):
         user = ''
         valid = False
         while(not valid and user != 'cancel'):
@@ -121,8 +121,8 @@ class TauNetClient():
 
         return user
 
+    #get a message from the user of the appropriate size
     def get_message(self, user):
-        #get a message from the user of the appropriate size
         valid = False
         while(not valid):
             message = raw_input('Enter a message to send ' + user + ' (Max Length = ' + str(self.max_input) + ' characters): ')
@@ -136,7 +136,7 @@ class TauNetClient():
     #makes a connection to a TauNet node of the user's choosing and sends an encrypted
     #message to the selected TauNet node
     def send_message(self):
-        user = self.get_reciever()
+        user = self.get_receiver()
         if(user == 'cancel'):
             print 'Returning to main menu.'
             return
