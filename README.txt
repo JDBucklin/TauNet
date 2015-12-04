@@ -58,3 +58,5 @@ In order to send messages to other users do the following:
 5. Follow the prompts to send messages to otherTauNet users
 
 Note: It is not necessary to have both applications open at the same time to operate either of them.
+
+Note: If either program fails to open instead type python file_name.py
