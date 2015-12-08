@@ -20,3 +20,17 @@ mantron|mantron.ddns.net
 jojen2|itsjonnyjyo.ddns.net
 cort|wyeast.ddns.net
 bart|barton.cs.pdx.edu
+rubear|131.252.211.242
+castlez|castlez.ddns.net
+quanah|quanah.duckdns.org
+mattTighe|matthewtighe.ddns.net
+jbrophy|jbrophy.ddns.net
+ph6|paulhuynh94.ddns.net
+zixuchen|zixuchenlorch.ddns.net
+mouacher|mouacher.ddns.net
+stripes416|mattst88.com
+mohl|mohl.ddns.net
+pbn|pbn.ddns.net
+hyena|hyena.ddns.net
+Minion|minion.mindtax.net
+gtdrakeley|71.59.140.217
